@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Master Malaikat Trade</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      background-color: #0d1117;
+      color: #fff;
+    }
+    .card {
+      background-color: #161b22;
+      border: none;
+    }
+    .btn-custom {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    label {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card p-4 shadow-lg">
+          <h3 class="text-center mb-4">Master Malaikat Trade Panel</h3>
+
+          <!-- Tombol Aksi -->
+          <div class="mb-3">
+            <button class="btn btn-success btn-custom" onclick="sendTelegram('LONG')">LONG</button>
+            <button class="btn btn-danger btn-custom" onclick="sendTelegram('SHORT')">SHORT</button>
+            <button class="btn btn-secondary btn-custom" onclick="sendCloseMessage()">TUTUP</button>
+          </div>
+
+          <!-- Modal -->
+          <div class="mb-3">
+            <label for="modalSelect">Modal</label>
+            <select class="form-select" id="modalSelect">
+              <option disabled selected>Pilih Modal</option>
+              <option>5 USDT</option>
+              <option>10 USDT</option>
+              <option>15 USDT</option>
+              <option>20 USDT</option>
+              <option>25 USDT</option>
+              <option>30 USDT</option>
+              <option>35 USDT</option>
+              <option>40 USDT</option>
+              <option>45 USDT</option>
+              <option>50 USDT</option>
+            </select>
+          </div>
+
+          <!-- Leverage -->
+          <div class="mb-3">
+            <label for="leverageSelect">Leverage</label>
+            <select class="form-select" id="leverageSelect">
+              <option disabled selected>Pilih Leverage</option>
+              <option>10x</option>
+              <option>25x</option>
+              <option>50x</option>
+              <option>100x</option>
+              <option>200x</option>
+              <option>300x</option>
+              <option>500x</option>
+            </select>
+          </div>
+
+          <!-- Catatan / Referensi -->
+          <div class="mb-3">
+            <label for="customInput">Catatan / Referensi</label>
+            <input type="text" class="form-control" id="customInput" placeholder="Tulis sesuatu di sini...">
+          </div>
+
+          <!-- Harga Saat Ini -->
+          <div class="mb-3">
+            <label for="priceInput">Harga Saat Ini</label>
+            <input type="text" class="form-control" id="priceInput" placeholder="Contoh: 0.09400" oninput="updateTakeProfit()">
+          </div>
+
+          <!-- Take Profit (3%) -->
+          <div class="mb-3">
+            <label for="tpOutput">Take Profit (3%)</label>
+            <input type="text" class="form-control" id="tpOutput" readonly placeholder="Akan dihitung otomatis...">
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  const botToken = '7166554653:AAGGNUq-uoNz954MMTwP8EayFfcV9toE22o';
+  const chatId = '-1002761748272';
+  let lastType = 'LONG'; // untuk tracking tipe terakhir (digunakan di updateTakeProfit)
+
+  function sendTelegram(type) {
+    const modal = document.getElementById("modalSelect").value;
+    const leverage = document.getElementById("leverageSelect").value;
+    const referensi = document.getElementById("customInput").value;
+    const harga = parseFloat(document.getElementById("priceInput").value);
+
+    if (!referensi.trim() || isNaN(harga)) {
+      alert("Mohon isi Catatan/Referensi dan Harga yang valid.");
+      return;
+    }
+
+    lastType = type; // Simpan tipe terakhir
+    const tp = type === "LONG" ? harga + (harga * 0.03) : harga - (harga * 0.03);
+
+    const message = 
+`🚨 Kepada Anggota, harap secepatnya melakukan Open Entry : ${type}
+📊 Harga Saat Ini: ${harga.toFixed(5)}
+💰 Modal Margin: ${modal}
+📈 Leverage: ${leverage}
+📝 Referensi Market: ${referensi}/USDT
+🎯 Take Profit: ${tp.toFixed(5)}
+
+🔗 Untuk yang baru bergabung harap mendaftarkan diri anda ke link berikut ini:
+http://bit.ly/43Y7ZoI
+
+⏰ Pesan ini diproses lebih cepat, jangan sampai terlambat yah.`;
+
+    sendMessage(message);
+
+    // Tampilkan TP di form
+    document.getElementById("tpOutput").value = tp.toFixed(5);
+  }
+
+  function sendCloseMessage() {
+    const referensi = document.getElementById("customInput").value;
+    if (!referensi.trim()) {
+      alert("Mohon isi Catatan / Referensi terlebih dahulu.");
+      return;
+    }
+
+    const message = 
+`⚠️ Harap secepatnya Tutup Posisi Entry: ${referensi}
+❌ Jika pesan ini diabaikan maka kami tidak bertanggung jawab atas kemungkinan likuiditas atau kerugian lainnya.`;
+
+    sendMessage(message);
+  }
+
+  function updateTakeProfit() {
+    const harga = parseFloat(document.getElementById("priceInput").value);
+    if (!isNaN(harga)) {
+      const tp = lastType === "SHORT" ? harga - (harga * 0.03) : harga + (harga * 0.03);
+      document.getElementById("tpOutput").value = tp.toFixed(5);
+    } else {
+      document.getElementById("tpOutput").value = '';
+    }
+  }
+
+  function sendMessage(text) {
+    fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: text
+      })
+    });
+  }
+</script>
+
+</body>
+</html>
