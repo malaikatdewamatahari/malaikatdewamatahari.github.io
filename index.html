@@ -101,7 +101,7 @@ function sendTelegram(type) {
 
   lastType = type;
   const isDesimal = harga < 1;
-  const persens = isDesimal ? [0.03, 0.07, 0.21] : [0.003, 0.007, 0.021];
+  const persens = isDesimal ? [0.04, 0.09, 0.21] : [0.004, 0.009, 0.021];
   const [tp1, tp2, tp3] = persens.map(p => type === "SHORT" ? harga - (harga * p) : harga + (harga * p));
 
   const message = 
